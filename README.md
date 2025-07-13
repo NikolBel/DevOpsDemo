@@ -3,8 +3,16 @@
 This is a playground project consisting of a frontend (React) and a backend (Node.js/Express) apps for deployment training.
 
 ---
+## Exercise 1. Docker locally​
+![Deploy & startup locally](assets/images/Docker-compose_locally​.png)
 
-## 🚀 Getting Started
+### Build and run 
+```bash
+cd ./
+npm docker-compose up --build
+```
+
+## 🚀 Getting Started Initial
 
 ### 🔧 Prerequisites
 
