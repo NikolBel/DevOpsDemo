@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  backend:
+    image: belokonenkons/devopsdemo-backend:latest
+    container_name: devops-backend
+    ports:
+      - "5000:5000"
+    networks:
+      - devops-net
+
+  frontend:
+    image: belokonenkons/devopsdemo-frontend:latest
+    container_name: devops-frontend
+    ports:
+      - "80:3000"
+    networks:
+      - devops-net
+    depends_on:
+      - backend
+
+networks:
+  devops-net:
+    driver: bridge
