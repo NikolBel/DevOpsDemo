@@ -17,6 +17,10 @@ npm docker-compose up --build
 ![Deploy & startup remoutly at Azure VM](assets/images/Remote-access_AzureVM.png)
 
 ### 🔧 Deployment
+Connect to VM
+```bash
+ssh -i ~/.ssh/notesVM_key.pem azureuser@51.137.95.150
+```
 Copy docker-compose file to remote VM:
 ```bash
 scp -i ~/.ssh/notesVM_key.pem -r ./VM_deploy azureuser@51.137.95.150:~/VM_deploy
