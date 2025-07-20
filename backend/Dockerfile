@@ -1,24 +1,39 @@
 # Dockerfile for Node.js backend application
-# Use the official Node.js image as a base
-FROM node:lts-alpine
+# syntax=docker/dockerfile:1.7
 
-# Set production mode and working directory
-ENV NODE_ENV=production
-WORKDIR /usr/src/app
+###
+# Stage 1: dependencies
+###
+FROM node:lts-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-COPY package.json package-lock.json ./
-RUN npm install --loglevel verbose
-
-# Copy the application code source
+###
+# Stage 2: test (optional; fails build if tests fail)
+###
+FROM deps AS test
 COPY . .
+ENV CI=true
+RUN npm test
 
-# Expose the port your app listens on
-EXPOSE 5000
+###
+# Stage 3: production deps (prunes dev dependencies)
+###
+FROM deps AS prod-deps
+RUN npm prune --omit=dev
 
-# Adjust permissions and switch to non-root user
-RUN chown -R node:node /usr/src/app
+###
+# Stage 4: runtime
+###
+FROM node:lts-alpine AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+# Only copy pruned node_modules + source
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY . .
+# (Optional) Add a HEALTHCHECK
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD node scripts/healthcheck.js || exit 1
 USER node
-
-# Start the application
-CMD ["node", "index.js"]
+EXPOSE 5000
+CMD ["node","index.js"]

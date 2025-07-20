@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+      target: runtime
+    environment:
+      LOG_LEVEL: debug
+    volumes:
+      - ../backend:/app   # hot reload (if you add nodemon)
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ./Dockerfile
+      target: runtime
+    environment:
+      REACT_APP_API_URL: http://localhost:5000
+    volumes:
+      - ../frontend:/app   # only if using dev server approach
