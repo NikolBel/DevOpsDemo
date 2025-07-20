@@ -20,7 +20,8 @@ RUN npm run build
 # Serve static via nginx
 ###
 FROM nginx:alpine AS runtime
-# Copy build to nginx html root
+# Copy nginx config and build output
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/build /usr/share/nginx/html
 # Provide simple health endpoint
 HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null http://127.0.0.1/ || exit 1
