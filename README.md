@@ -34,18 +34,18 @@ docker pull belokonenkons/devopsdemo-frontend:latest
 docker compose up -d
 ```
 
-## 🚀 Getting Started Initial
 
-### 🔧 Prerequisites
+## Exercise 3. Automate deployment to VM with GitHub actions
+![Build and Deploy with GitHub actions](assets/images/Build-Test-Deploy_pipeline.png)
+- CI: Lints, tests (backend & frontend) and optionally validates Docker builds on PRs and pushes to main (excluding docs/compose changes).
+- Build & Push Images: Builds multi-arch backend/frontend runtime images with semantic, latest, and short SHA tags and pushes them to Docker Hub (on main or version tags / reusable via workflow_call).
+- Deploy to VM: On manual trigger or after a successful image build, copies compose + scripts to the VM, pulls specified image tags, recreates services, performs a basic health check, and prunes old images.
+- Validate Secrets: Manually verifies required secrets and SSH access by attempting a masked connection to the target VM and reporting connectivity details.
 
-Make sure you have the following installed:
+--------------------------------------
 
-- [Node.js](https://nodejs.org/)
-- npm (comes with Node.js)
 
----
-
-## 📦 Install & Run
+## 📦 Debug Localy
 
 ### ▶️ Frontend
 ```bash
