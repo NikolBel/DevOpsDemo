@@ -13,4 +13,4 @@ EOF
 
 docker compose -f docker-compose.base.yml -f docker-compose.prod.yml pull
 docker compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d --remove-orphans
-docker image prune -f --filter "until=24h"
+docker image prune -f --filter "dangling=true"
