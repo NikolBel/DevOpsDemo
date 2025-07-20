@@ -87,7 +87,7 @@ jobs:
             # Basic health check loop (backend)
             echo "Verifying backend health..."
             for i in {1..10}; do
-              if docker exec devops-backend wget -q -O /dev/null http://localhost:5000/health || docker ps --filter "name=devops-backend" --format '{{.Status}}' | grep -qi 'up'; then
+              if docker exec devops-backend wget -q -O /dev/null http://localhost:5001/health || docker ps --filter "name=devops-backend" --format '{{.Status}}' | grep -qi 'up'; then
                 echo "Backend healthy."
                 break
               fi
