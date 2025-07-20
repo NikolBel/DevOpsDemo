@@ -30,11 +30,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success')
     steps:
       - uses: actions/checkout@v4
-        # Only need compose files & scripts
-        with:
-          sparse-checkout: |
-            compose
-            scripts
 
       - name: Select tags
         id: tags
@@ -48,6 +43,31 @@ jobs:
             echo "backend_tag=$SHA_TAG" >> $GITHUB_OUTPUT
             echo "frontend_tag=$SHA_TAG" >> $GITHUB_OUTPUT
           fi
+
+      - name: Debug list
+        run: |
+          pwd
+          ls -al
+          echo "---- compose ----"
+          ls -al compose || echo "no compose dir"
+          echo "---- scripts ----"
+          ls -al scripts || echo "no scripts dir"
+
+      - name: Check remote path
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -x
+            echo "WHOAMI:"
+            whoami
+            echo "HOME:"
+            pwd
+            echo "Trying path: ${DEPLOY_DIR:-not_set}"
+            ls -ld "${DEPLOY_DIR}" || echo "will create"
+            ls -ld "$(dirname "${DEPLOY_DIR}")"
 
       - name: Copy compose & scripts
         uses: appleboy/scp-action@v0.1.7
