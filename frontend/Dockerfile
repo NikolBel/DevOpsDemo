@@ -27,5 +27,5 @@ FROM nginx:alpine AS runtime
 COPY --from=build /app/build /usr/share/nginx/html
 # Provide simple health endpoint
 HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null http://localhost/ || exit 1
-EXPOSE 3000
+EXPOSE 80
 # (Nginx default CMD)
