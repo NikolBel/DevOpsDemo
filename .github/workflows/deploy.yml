@@ -63,7 +63,7 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           envs: DEPLOY_DIR
           script: |
-            set -eux
+            set -euxo pipefail
             echo "Trying path: $DEPLOY_DIR"
             ls -ld "$DEPLOY_DIR" || echo "will create"
             ls -ld "$(dirname "$DEPLOY_DIR")"
