@@ -90,7 +90,7 @@ jobs:
             compose/docker-compose.base.yml
             compose/docker-compose.prod.yml
             scripts/**
-          target: "${{ env.DEPLOY_DIR }}"
+          target: "${{ env.DEPLOY_PATH }}"
           debug: true
 
       - name: Verify remote files
