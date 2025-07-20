@@ -1,0 +1,98 @@
+name: Deploy to VM
+
+on:
+  workflow_dispatch:
+    inputs:
+      backend_ref:
+        description: "Backend tag (e.g., sha-abc123 or latest)"
+        required: true
+        default: "latest"
+      frontend_ref:
+        description: "Frontend tag"
+        required: true
+        default: "latest"
+  # (Optional) auto after build success on main:
+  workflow_run:
+    workflows: ["Build & Push Images"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+env:
+  DEPLOY_DIR: ${{ secrets.DEPLOY_PATH || '/home/azureuser/app' }}
+  BACKEND_IMAGE: belokonenkons/devopsdemo-backend
+  FRONTEND_IMAGE: belokonenkons/devopsdemo-frontend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success')
+    steps:
+      - uses: actions/checkout@v4
+        # Only need compose files & scripts
+        with:
+          sparse-checkout: |
+            compose
+            scripts
+
+      - name: Select tags
+        id: tags
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "backend_tag=${{ github.event.inputs.backend_ref }}" >> $GITHUB_OUTPUT
+            echo "frontend_tag=${{ github.event.inputs.frontend_ref }}" >> $GITHUB_OUTPUT
+          else
+            # Derive from last commit SHA (short)
+            SHA_TAG=sha-$(echo "${GITHUB_SHA}" | cut -c1-7)
+            echo "backend_tag=$SHA_TAG" >> $GITHUB_OUTPUT
+            echo "frontend_tag=$SHA_TAG" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Copy compose & scripts
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          source: "compose/*,scripts/*"
+          target: "${{ env.DEPLOY_DIR }}"
+
+      - name: Remote deploy
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          BACKEND_TAG: ${{ steps.tags.outputs.backend_tag }}
+          FRONTEND_TAG: ${{ steps.tags.outputs.frontend_tag }}
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ env.DEPLOY_DIR }}/compose"
+            echo "Deploying backend=${BACKEND_TAG} frontend=${FRONTEND_TAG}"
+
+            # Create .env for compose
+            cat > .env <<EOF
+            BACKEND_TAG=${BACKEND_TAG}
+            FRONTEND_TAG=${FRONTEND_TAG}
+            EOF
+
+            # Pull new images
+            docker compose -f docker-compose.base.yml -f docker-compose.prod.yml pull
+
+            # Start/Update services
+            docker compose -f docker-compose.base.yml -f docker-compose.prod.yml up -d --remove-orphans
+
+            # Basic health check loop (backend)
+            echo "Verifying backend health..."
+            for i in {1..10}; do
+              if docker exec devops-backend wget -q -O /dev/null http://localhost:5000/health || docker ps --filter "name=devops-backend" --format '{{.Status}}' | grep -qi 'up'; then
+                echo "Backend healthy."
+                break
+              fi
+              sleep 3
+            done
+
+            # Clean up old dangling images (safe)
+            docker image prune -f --filter "until=24h"

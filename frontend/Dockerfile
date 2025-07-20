@@ -1,24 +1,31 @@
-# Dockerfile for Node.js frontend application
 # Use the official Node.js image as a base
-FROM node:lts-alpine
 
-# Set production mode and working directory
-ENV NODE_ENV=production
-WORKDIR /usr/src/app
 
-# Install dependencies
-COPY package.json package-lock.json ./
-RUN npm install --loglevel verbose
+# Dockerfile for Node.js frontend application
+# syntax=docker/dockerfile:1.7
 
-# Copy the application code source
+###
+# Stage 1: dependencies
+###
+FROM node:lts-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+
+###
+# Stage 2: build
+###
+FROM deps AS build
 COPY . .
+RUN npm run build
 
-# Expose the port your app listens on
+###
+# Serve static via nginx
+###
+FROM nginx:alpine AS runtime
+# Copy build to nginx html root
+COPY --from=build /app/build /usr/share/nginx/html
+# Provide simple health endpoint
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null http://localhost/ || exit 1
 EXPOSE 3000
-
-# Adjust permissions and switch to non-root user
-RUN chown -R node:node /usr/src/app
-USER node
-
-# Start the application
-CMD ["npm", "start"]
+# (Nginx default CMD)

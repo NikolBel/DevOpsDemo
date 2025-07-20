@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'compose/**'
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'compose/**'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [backend, frontend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Test
+        run: npm test --if-present -- --ci --reporters=default
+
+  # Optional: lightweight docker build validation (without push)
+  build-validation:
+    needs: lint-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Backend image build (no push)
+        uses: docker/build-push-action@v5
+        with:
+            context: ./backend
+            target: runtime
+            push: false
+            tags: backend:ci-test
+
+      - name: Frontend image build (no push)
+        uses: docker/build-push-action@v5
+        with:
+            context: ./frontend
+            target: runtime
+            push: false
+            tags: frontend:ci-test

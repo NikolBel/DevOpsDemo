@@ -1,0 +1,7 @@
+services:
+  backend:
+    image: belokonenkons/devopsdemo-backend:${BACKEND_TAG:-latest}
+    restart: unless-stopped
+  frontend:
+    image: belokonenkons/devopsdemo-frontend:${FRONTEND_TAG:-latest}
+    restart: unless-stopped
