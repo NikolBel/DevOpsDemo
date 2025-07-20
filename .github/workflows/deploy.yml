@@ -111,13 +111,20 @@ jobs:
         env:
           BACKEND_TAG: ${{ steps.tags.outputs.backend_tag }}
           FRONTEND_TAG: ${{ steps.tags.outputs.frontend_tag }}
+          DEPLOY_DIR: ${{ vars.DEPLOY_PATH }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
+          envs: BACKEND_TAG,FRONTEND_TAG,DEPLOY_DIR
           script: |
             set -euo pipefail
-            cd "${{ env.DEPLOY_DIR }}/compose"
+
+            : "${BACKEND_TAG:?BACKEND_TAG empty}"
+            : "${FRONTEND_TAG:?FRONTEND_TAG empty}"
+            : "${DEPLOY_DIR:?DEPLOY_DIR empty}"
+
+            cd "$DEPLOY_DIR/compose"
             echo "Deploying backend=${BACKEND_TAG} frontend=${FRONTEND_TAG}"
 
             # Create .env for compose
