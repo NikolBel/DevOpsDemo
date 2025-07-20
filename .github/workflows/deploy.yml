@@ -60,14 +60,25 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            set -x
-            echo "WHOAMI:"
-            whoami
-            echo "HOME:"
-            pwd
-            echo "Trying path: ${DEPLOY_DIR:-not_set}"
-            ls -ld "${DEPLOY_DIR}" || echo "will create"
-            ls -ld "$(dirname "${DEPLOY_DIR}")"
+            set -euxo pipefail
+            DEPLOY_DIR='${{ env.DEPLOY_PATH }}'
+            echo "Trying path: $DEPLOY_DIR"
+            ls -ld "$DEPLOY_DIR" || echo "will create"
+            ls -ld "$(dirname "$DEPLOY_DIR")"
+
+      - name: Prepare remote dir
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_DIR: ${{ env.DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          envs: DEPLOY_DIR
+          script: |
+            set -eux
+            mkdir -p "$DEPLOY_DIR/compose" "$DEPLOY_DIR/scripts"
+            ls -ld "$DEPLOY_DIR" "$DEPLOY_DIR/compose"
 
       - name: Copy compose & scripts
         uses: appleboy/scp-action@v0.1.7
@@ -75,8 +86,26 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
-          source: "compose/*,scripts/*"
+          source: |
+            compose/docker-compose.base.yml
+            compose/docker-compose.prod.yml
+            scripts/**
           target: "${{ env.DEPLOY_DIR }}"
+          debug: true
+
+      - name: Verify remote files
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DEPLOY_DIR: ${{ env.DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          envs: DEPLOY_DIR
+          script: |
+            set -eux
+            ls -R "$DEPLOY_DIR/compose"
+            ls -R "$DEPLOY_DIR/scripts"
 
       - name: Remote deploy
         uses: appleboy/ssh-action@v1.0.3
