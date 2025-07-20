@@ -95,7 +95,7 @@ jobs:
       - name: Verify remote files
         uses: appleboy/ssh-action@v1.0.3
         env:
-          DEPLOY_DIR: ${{ env.DEPLOY_PATH }}
+          DEPLOY_DIR: ${{ vars.DEPLOY_PATH }}
         with:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
