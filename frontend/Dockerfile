@@ -1,6 +1,3 @@
-# Use the official Node.js image as a base
-
-
 # Dockerfile for Node.js frontend application
 # syntax=docker/dockerfile:1.7
 
