@@ -1,6 +1,3 @@
-# Use the official Node.js image as a base
-
-
 # Dockerfile for Node.js frontend application
 # syntax=docker/dockerfile:1.7
 
@@ -26,6 +23,6 @@ FROM nginx:alpine AS runtime
 # Copy build to nginx html root
 COPY --from=build /app/build /usr/share/nginx/html
 # Provide simple health endpoint
-HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null http://localhost:3000/ || exit 1
-EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null http://127.0.0.1/ || exit 1
+EXPOSE 80
 # (Nginx default CMD)

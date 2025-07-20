@@ -22,6 +22,8 @@ app.post('/api/notes', (req, res) => {
     res.status(201).json(newNote);
 });
 
+app.get('/health', (req, res) => res.send('ok'));
+
 const cors = require('cors');
 
 app.use(cors({
