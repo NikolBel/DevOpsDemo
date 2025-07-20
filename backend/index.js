@@ -1,13 +1,17 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
+const NOTES_FILE = path.join(__dirname, 'notes.json');
 
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:80'
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-const NOTES_FILE = path.join(__dirname, 'notes.json');
 
 app.get('/api/notes', (req, res) => {
     const notes = JSON.parse(fs.readFileSync(NOTES_FILE, 'utf-8'));
@@ -24,9 +28,4 @@ app.post('/api/notes', (req, res) => {
 
 app.get('/health', (req, res) => res.send('ok'));
 
-const cors = require('cors');
-
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:80'
-}));
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
