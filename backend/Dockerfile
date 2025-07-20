@@ -32,8 +32,9 @@ WORKDIR /app
 # Only copy pruned node_modules + source
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY . .
-# (Optional) Add a HEALTHCHECK
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD node scripts/healthcheck.js || exit 1
+
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 CMD wget -q -O /dev/null http://127.0.0.1:5000/health || exit 1
+
 USER node
 EXPOSE 5000
 CMD ["node","index.js"]
