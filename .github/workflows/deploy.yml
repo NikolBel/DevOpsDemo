@@ -88,9 +88,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
-          source: |
-            compose
-            scripts
+          source: compose, scripts
           target: ${{ vars.DEPLOY_PATH }}
           debug: true
 
