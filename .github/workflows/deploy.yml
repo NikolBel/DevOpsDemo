@@ -120,9 +120,9 @@ jobs:
           script: |
             set -euo pipefail
 
-            : "${BACKEND_TAG:?BACKEND_TAG empty}"
-            : "${FRONTEND_TAG:?FRONTEND_TAG empty}"
-            : "${DEPLOY_DIR:?DEPLOY_DIR empty}"
+            : "${BACKEND_TAG:?BACKEND_TAG is required but not set}"
+            : "${FRONTEND_TAG:?FRONTEND_TAG is required but not set}"
+            : "${DEPLOY_DIR:?DEPLOY_DIR is required but not set}"
 
             cd "$DEPLOY_DIR/compose"
             echo "Deploying backend=${BACKEND_TAG} frontend=${FRONTEND_TAG}"
