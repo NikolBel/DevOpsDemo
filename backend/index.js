@@ -27,6 +27,6 @@ app.get('/health', (req, res) => res.send('ok'));
 const cors = require('cors');
 
 app.use(cors({
-  origin: 'http://localhost:80'  
+  origin: process.env.CORS_ORIGIN || 'http://localhost:80'
 }));
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
